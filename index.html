@@ -740,7 +740,7 @@ input[type="file"]{display:none}
 <header>
   <div>
     <h1>Life Tracker</h1>
-    <div class="sub">2026 Filing Year · Personal &amp; Business</div>
+    <div class="sub" id="header-filing-year">Filing Year · Personal &amp; Business</div>
   </div>
   <div class="header-actions">
     <button class="btn" onclick="exportData()">↓ Export Backup</button>
@@ -766,7 +766,7 @@ input[type="file"]{display:none}
   <button class="tab" data-tab="tax" onclick="showTab('tax')">Tax</button>
   <button class="tab" data-tab="hsa" onclick="showTab('hsa')">HSA</button>
   <button class="tab" data-tab="health" onclick="showTab('health')">Health</button>
-  <button class="tab" data-tab="maintenance" onclick="showTab('maintenance')">Benz</button>
+  <button class="tab" data-tab="maintenance" onclick="showTab('maintenance')">Vehicle</button>
   <button class="tab" data-tab="insights" onclick="showTab('insights')">Insights</button>
   <button class="tab" data-tab="email" onclick="showTab('email')">Email Scan</button>
   <button class="tab" data-tab="documents" onclick="showTab('documents')">Docs</button>
@@ -1570,7 +1570,7 @@ input[type="file"]{display:none}
     <div class="tile">
       <div class="tile-label">Home Office Deduction</div>
       <div class="tile-value" id="tax-home-office">$0</div>
-      <div class="tile-meta" id="tax-home-office-meta">150/756 sqft = 19.84%</div>
+      <div class="tile-meta" id="tax-home-office-meta">Set sqft below</div>
     </div>
   </div>
 
@@ -1700,7 +1700,7 @@ input[type="file"]{display:none}
 
   <div class="card">
     <div class="card-title">What's HSA Eligible?</div>
-    <div class="card-sub">Comprehensive reference &middot; updated for 2026</div>
+    <div class="card-sub">Comprehensive reference</div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;font-size:13px">
       <div>
         <strong style="color:var(--green)">YES &mdash; Medical Care</strong>
@@ -1981,7 +1981,7 @@ input[type="file"]{display:none}
     <div class="card-header">
       <div>
         <div class="card-title">Brokerage Retirement &mdash; Self-Directed</div>
-        <div class="card-sub">You manage this directly &middot; Account ending 6896</div>
+        <div class="card-sub">You manage this directly</div>
       </div>
       <div>
         <button class="btn btn-sm" onclick="refreshStockPrices('retirement')">Refresh Prices</button>
@@ -1995,7 +1995,7 @@ input[type="file"]{display:none}
     <div class="card-header">
       <div>
         <div class="card-title">Individual TOD &mdash; Professionally Managed</div>
-        <div class="card-sub">Managed by advisor &middot; Account ending 3486</div>
+        <div class="card-sub">Managed by advisor</div>
       </div>
       <div>
         <button class="btn btn-sm" onclick="refreshStockPrices('managed')">Refresh Prices</button>
@@ -2216,7 +2216,7 @@ input[type="file"]{display:none}
         <li><strong>Card offers</strong> &mdash; reads screenshots of Chase/Amex Offers and matches to your spending</li>
         <li><strong>Find Better Cards</strong> &mdash; compares your cards to current market alternatives with sign-up bonuses</li>
         <li><strong>Brokerage</strong> &mdash; "Refresh Prices" looks up current quotes; "Run Analysis" compares managed vs DIY</li>
-        <li><strong>Asset value check</strong> &mdash; looks up recent comps for collectibles (e.g. the Kobe card)</li>
+        <li><strong>Asset value check</strong> &mdash; looks up recent comps for collectibles you're tracking</li>
         <li><strong>Tax returns</strong> &mdash; extracts year, AGI, Schedule C from prior returns</li>
         <li><strong>Vehicle maintenance</strong> &mdash; pulls the factory schedule for your specific car</li>
         <li><strong>Smart Shopper</strong> &mdash; product recommendations + which of your cards earns most</li>
@@ -2540,7 +2540,7 @@ input[type="file"]{display:none}
     <h2 id="maint-modal-title">Add Item</h2>
     <input type="hidden" id="mt-id">
     <input type="hidden" id="mt-kind">
-    <div class="form-row"><label>Name</label><input type="text" id="mt-name" placeholder="e.g., Oil change, Car registration, Kobe Bryant Card"></div>
+    <div class="form-row"><label>Name</label><input type="text" id="mt-name" placeholder="e.g., Oil change, Car registration, Collectible card"></div>
     <div class="form-row" id="mt-vehicle-fields">
       <label>Interval (miles)</label><input type="number" id="mt-interval-miles" placeholder="e.g., 5000">
       <label style="margin-top:10px">Last done at mileage</label><input type="number" id="mt-last-miles">
@@ -2627,7 +2627,7 @@ input[type="file"]{display:none}
     </div>
     <div class="form-row">
       <label>Filing Year</label>
-      <input type="number" id="filing-year" value="2026">
+      <input type="number" id="filing-year" placeholder="2026">
     </div>
     <div class="modal-actions">
       <button class="btn btn-danger" onclick="if(confirm('Delete ALL data?')){localStorage.clear();location.reload()}">Reset All Data</button>
@@ -2696,7 +2696,7 @@ let state={
   detectedFees:{},
   manualFeeRecords:{},
   vehicleDocuments:[],
-  gasTracker:{zip:'',state:'CO',lastFetch:null,stateAvg:null,monthAgo:null,yearAgo:null,history:[],localPrices:null,outlook:null,outlookFetched:null},
+  gasTracker:{zip:'',state:'',lastFetch:null,stateAvg:null,monthAgo:null,yearAgo:null,history:[],localPrices:null,outlook:null,outlookFetched:null},
   gmail:{
     clientId:'',
     accessToken:'',
@@ -2708,13 +2708,13 @@ let state={
     fraudAlerts:[]
   },
   statementMatrix:{},
-  homeOffice:{rent:1748,total:756,office:150,months:12},
-  vehicle:{year:2014,make:'Mercedes-Benz',model:'C300'},
+  homeOffice:{rent:0,total:0,office:0,months:0},
+  vehicle:{year:0,make:'',model:''},
   currentMileage:null,
   insightsCache:null,
   lastInsightsVersion:'',
   apiKey:'',
-  filingYear:2026,
+  filingYear:new Date().getFullYear(),
   manualPersonalExpenses:[],
   txnRules:[],
   driveFolder:''
@@ -2762,11 +2762,11 @@ function load(){
   if(state.csvWarningDismissed===undefined)state.csvWarningDismissed=false;
   if(!state.manualFeeRecords)state.manualFeeRecords={};
   if(!state.vehicleDocuments)state.vehicleDocuments=[];
-  if(!state.gasTracker)state.gasTracker={zip:'',state:'CO',lastFetch:null,stateAvg:null,monthAgo:null,yearAgo:null,history:[],localPrices:null,outlook:null,outlookFetched:null};
+  if(!state.gasTracker)state.gasTracker={zip:'',state:'',lastFetch:null,stateAvg:null,monthAgo:null,yearAgo:null,history:[],localPrices:null,outlook:null,outlookFetched:null};
   if(!state.gmail)state.gmail={clientId:'',accessToken:'',tokenExpiry:0,lastScan:null,renewals:[],receipts:[],statements:[],fraudAlerts:[]};
   if(!state.statementMatrix)state.statementMatrix={};
-  if(!state.homeOffice)state.homeOffice={rent:1748,total:756,office:150,months:12};
-  if(!state.vehicle)state.vehicle={year:2014,make:'Mercedes-Benz',model:'C300'};
+  if(!state.homeOffice)state.homeOffice={rent:0,total:0,office:0,months:0};
+  if(!state.vehicle)state.vehicle={year:0,make:'',model:''};
   if(!state.txnRules)state.txnRules=[];
   if(typeof state.driveFolder!=='string')state.driveFolder='';
   if(!state.personalIncome)state.personalIncome=[];
@@ -2980,55 +2980,13 @@ function recategorizeTransactions(){
 }
 
 function seedDefaults(){
-  // From the uploaded sheet
-  state.income=[
-    {name:'PayPal',amounts:new Array(12).fill(0)},
-    {name:'Wire transfers',amounts:[0,0,0,6650,1700,0,0,0,3250,0,1600,0]},
-    {name:'ShareASale',amounts:new Array(12).fill(0)},
-    {name:'Impact',amounts:new Array(12).fill(0)}
-  ];
-  state.expenses=[
-    {name:'PayPal fees',amounts:new Array(12).fill(0)},
-    {name:'Bank monthly service fees',amounts:new Array(12).fill(0)},
-    {name:'Internet',amounts:[75.29,...new Array(11).fill(75.29)]},
-    {name:'Phone',amounts:new Array(12).fill(50)},
-    {name:'Wire fees',amounts:new Array(12).fill(0)},
-    {name:'Merchandise & inventory',amounts:new Array(12).fill(0)},
-    {name:'Professional services',amounts:new Array(12).fill(0)},
-    {name:'Office & shipping',amounts:new Array(12).fill(0)},
-    {name:'Gas',amounts:[101.26,567.09,0,0,0,0,0,0,0,0,0,0]},
-    {name:'Travel',amounts:[244.84,216.67,0,0,0,0,0,0,0,0,0,0]},
-    {name:'Labor',amounts:[1500,350,0,0,0,0,0,0,0,0,0,0]},
-    {name:'Meals',amounts:new Array(12).fill(0)},
-    {name:'Legal (registration, SOS)',amounts:[25,50,20,0,0,0,0,0,0,0,0,0]},
-    {name:'Maintenance',amounts:new Array(12).fill(0)},
-    {name:'Other (parking, accessories)',amounts:new Array(12).fill(80)},
-    {name:'Insurance - Dental',amounts:new Array(12).fill(11.13)},
-    {name:'Insurance - Car',amounts:[307.31,516.19,121.89,0,0,0,0,0,0,0,0,0]},
-    {name:'Insurance - Renter',amounts:new Array(12).fill(18.42)},
-    {name:'Xcel Energy (home office %)',amounts:new Array(12).fill(21.32)}
-  ];
-  state.accounts=[
-    {id:id(),name:'PayPal',type:'business',category:'paypal',files:[]},
-    {id:id(),name:'Business Checking',type:'business',category:'checking',files:[]},
-    {id:id(),name:'Business Credit',type:'business',category:'credit',files:[]},
-    {id:id(),name:'Citi Bank',type:'personal',category:'checking',files:[]},
-    {id:id(),name:'Personal Credit',type:'personal',category:'credit',files:[]},
-    {id:id(),name:'Personal Checking',type:'personal',category:'checking',files:[]},
-    {id:id(),name:'XOOM',type:'business',category:'xoom',files:[]},
-    {id:id(),name:'Venmo',type:'personal',category:'venmo',files:[]},
-    {id:id(),name:'Amazon',type:'personal',category:'other',files:[]}
-  ];
-
-  // Seed common renewals from the spreadsheet data
-  state.renewals=[
-    {id:id(),name:'ParkM',category:'subscription',amount:120,frequency:'yearly',date:'',type:'business',notes:'From 2025 sheet'},
-    {id:id(),name:'Alta Parking',category:'subscription',amount:840,frequency:'yearly',date:'',type:'business',notes:'From 2025 sheet'},
-    {id:id(),name:'Dental Insurance',category:'insurance',amount:133.50,frequency:'yearly',date:'',type:'personal',notes:''},
-    {id:id(),name:"Renter's Insurance",category:'insurance',amount:221,frequency:'yearly',date:'',type:'personal',notes:''},
-    {id:id(),name:'Internet (Xfinity/etc)',category:'subscription',amount:75.29,frequency:'monthly',date:'',type:'business',notes:''},
-    {id:id(),name:'Phone',category:'subscription',amount:50,frequency:'monthly',date:'',type:'business',notes:''}
-  ];
+  // The tracker ships with NO seeded financial data. Users start with empty arrays
+  // and add their own accounts, income sources, expenses, and renewals as they go.
+  // (To bootstrap a fresh install with personal data, use Import Backup with your own JSON.)
+  state.income=[];
+  state.expenses=[];
+  state.accounts=[];
+  state.renewals=[];
 }
 
 function id(){return Math.random().toString(36).slice(2,10)}
@@ -4111,6 +4069,9 @@ function renderBenefitsSummary(){
 }
 
 function renderSummary(){
+  // Update the header filing year text
+  const hfy=document.getElementById('header-filing-year');
+  if(hfy)hfy.textContent=`${state.filingYear||new Date().getFullYear()} Filing Year · Personal & Business`;
   // Compute statement coverage and determine projection mode
   const coverage=computeStatementCoverage?computeStatementCoverage():{count:0};
   const priorReturn=(state.taxReturns&&state.taxReturns.length>0)?[...state.taxReturns].sort((a,b)=>(b.year||0)-(a.year||0))[0]:null;
@@ -4820,7 +4781,7 @@ async function runCardComparison(){
   state.transactions.filter(t=>t.amount<0).forEach(t=>{
     const k=t.category||'Other';totalByCategory[k]=(totalByCategory[k]||0)+Math.abs(t.amount);
   });
-  const prompt=`I'm helping a Denver-based self-employed business owner evaluate if their credit cards are optimal. Analyze their current cards and spending, then recommend better alternatives.
+  const prompt=`I'm helping a self-employed business owner evaluate if their credit cards are optimal. Analyze their current cards and spending, then recommend better alternatives.
 
 CURRENT CARDS: ${JSON.stringify(state.cards.map(c=>({name:c.name,issuer:c.issuer,fee:c.fee,type:c.type})))}
 
@@ -4828,7 +4789,7 @@ CARD-LEVEL SPENDING: ${JSON.stringify(cardSpending)}
 
 TOTAL SPEND BY CATEGORY (all cards): ${JSON.stringify(totalByCategory)}
 
-For each current card or for any spending gap, search the web for current (2026) credit card offerings that would provide better value. Consider:
+For each current card or for any spending gap, search the web for current credit card offerings that would provide better value. Consider:
 - Sign-up bonus offers active right now
 - Annual fee vs benefits trade-off based on their actual spending
 - Category bonus alignment (do they spend a lot on dining? travel? gas? office supplies?)
@@ -4950,7 +4911,7 @@ async function verifyCardBenefits(){
     id:c.id,name:c.name,issuer:c.issuer,type:c.type,fee:c.fee,
     knownExpirations:c.benefitExpirations||[]
   }));
-  const prompt=`For each of these credit cards, look up the CURRENT (2026) benefits that have specific expiration or reset dates. These are time-limited benefits the user might miss out on.
+  const prompt=`For each of these credit cards, look up the CURRENT benefits that have specific expiration or reset dates. These are time-limited benefits the user might miss out on.
 
 Cards: ${JSON.stringify(cardsForCheck)}
 
@@ -4962,7 +4923,7 @@ For each card, identify benefits like:
 
 Return ONLY a JSON object: {"cards":[{"cardId":"...", "missing":[{"name":"benefit name", "expires":"YYYY-MM-DD or descriptor", "value":dollar_value, "frequency":"yearly/monthly", "notes":"how to use, where to claim"}]}]}
 
-Only include benefits that the user does NOT already have in their knownExpirations. Keep notes under 150 chars. Use today's date plus benefit period for expires dates (e.g., if benefit is "annual" and we're in May 2026, expires "2026-12-31" or anniversary based).`;
+Only include benefits that the user does NOT already have in their knownExpirations. Keep notes under 150 chars. Use today's date plus benefit period for expires dates (e.g., if benefit is annual, set expires to the appropriate date this year or anniversary based).`;
   try{
     const r=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
@@ -5003,7 +4964,7 @@ async function fetchCardBenefits(){
   const orig=ta.value;
   ta.value='Fetching benefits...';
   ta.disabled=true;
-  const userLoc='Denver, CO';
+  const userLoc=(state.gasTracker&&state.gasTracker.state)?state.gasTracker.state:'';
   const prompt=`Look up the detailed benefits, rewards, and credits for the credit card: "${issuer} ${name}".
 
 For EACH benefit, be specific and actionable. Include:
@@ -5438,8 +5399,6 @@ function guessCategory(desc){
   // Payment processors (revenue-side)
   if(/\b(stripe|square|squareup|paypal.*transfer|shopify|gusto pay|paychex.*deposit|adp.*deposit)\b/.test(d))return'Sales/Revenue';
   if(/\bshareasale\b/.test(d))return'Affiliate Revenue';
-  // Scala Hosting / merchant ACH credits
-  if(/\bscala hosting\b/.test(d))return'Sales/Revenue';
 
   // ========= BUSINESS EXPENSES =========
   // Payroll (employee/contractor pay)
@@ -5485,7 +5444,7 @@ function needsReview(cat){
 
 // ============ AUTOFILL ============
 // NOTE: previously auto-ran on uploads, but that overwrote the user's manual income/expense entries
-// and the category guesser miscategorized things (e.g. "Scala Hosting" matching "gas"), and CC payments
+// and the category guesser miscategorized things (substring matching false positives), and CC payments
 // were double-counted. Now it's a no-op stub kept only to avoid breaking the old call sites.
 
 function isTransferOrPayment(t){
@@ -5545,7 +5504,7 @@ function normalizeDesc(s){
   d=d.replace(/#\s*\d+/g,' ');                // store numbers
   d=d.replace(/\b\d{4,}\b/g,' ');             // any 4+ digit run
   d=d.replace(/\b[a-z]*\d+[a-z0-9]*\b/g,' '); // codes mixing letters+digits (e.g. 8983I0RU3)
-  // Strip city/state suffixes typical on card statements ("MERCHANT  DENVER CO")
+  // Strip city/state suffixes typical on card statements (e.g. "MERCHANT CITY ST")
   d=d.replace(/\s+[a-z]{2}\s*$/,' ');
   // Punctuation -> space, collapse whitespace
   d=d.replace(/[^a-z0-9 ]+/g,' ').replace(/\s+/g,' ').trim();
@@ -5777,16 +5736,16 @@ function importData(evt){
           csvWarningDismissed:imported.csvWarningDismissed||false,
           manualFeeRecords:imported.manualFeeRecords||{},
           vehicleDocuments:imported.vehicleDocuments||[],
-          gasTracker:imported.gasTracker||{zip:'',state:'CO',lastFetch:null,stateAvg:null,monthAgo:null,yearAgo:null,history:[],localPrices:null,outlook:null,outlookFetched:null},
+          gasTracker:imported.gasTracker||{zip:'',state:'',lastFetch:null,stateAvg:null,monthAgo:null,yearAgo:null,history:[],localPrices:null,outlook:null,outlookFetched:null},
           gmail:imported.gmail||{clientId:'',accessToken:'',tokenExpiry:0,lastScan:null,renewals:[],receipts:[],statements:[],fraudAlerts:[]},
           statementMatrix:imported.statementMatrix||{},
-          homeOffice:imported.homeOffice||{rent:1748,total:756,office:150,months:12},
-          vehicle:imported.vehicle||{year:2014,make:'Mercedes-Benz',model:'C300'},
+          homeOffice:imported.homeOffice||{rent:0,total:0,office:0,months:0},
+          vehicle:imported.vehicle||{year:0,make:'',model:''},
           currentMileage:imported.currentMileage||null,
           insightsCache:imported.insightsCache||null,
           lastInsightsVersion:imported.lastInsightsVersion||'',
           apiKey:imported.apiKey||state.apiKey||'',
-          filingYear:imported.filingYear||2026,
+          filingYear:imported.filingYear||(new Date().getFullYear()),
           manualPersonalExpenses:imported.manualPersonalExpenses||[]
         };
         save();
@@ -5802,13 +5761,13 @@ function importData(evt){
 // ============ SETTINGS ============
 function openSettings(){
   document.getElementById('api-key').value=state.apiKey||'';
-  document.getElementById('filing-year').value=state.filingYear||2026;
+  document.getElementById('filing-year').value=state.filingYear||(new Date().getFullYear());
   document.getElementById('settings-modal').classList.add('active');
 }
 function closeSettings(){document.getElementById('settings-modal').classList.remove('active')}
 function saveSettings(){
   state.apiKey=document.getElementById('api-key').value.trim();
-  state.filingYear=parseInt(document.getElementById('filing-year').value)||2026;
+  state.filingYear=parseInt(document.getElementById('filing-year').value)||(new Date().getFullYear());
   save();closeSettings();checkApiBanner();toast('Settings saved');
 }
 
@@ -6075,7 +6034,7 @@ function getDocTabFromUploaded(d){
   if(/sapphire|united|prime|ink|amex|capital one|discover|credit.card|cc.stmt/.test(combined))return'Cards';
   if(/checking|savings|bank/.test(combined))return'Accounts';
   if(/insurance|subscription|renewal/.test(combined))return'Subscriptions';
-  if(/vehicle|mercedes|benz|car|registration|emissions/.test(combined))return'Benz';
+  if(/vehicle|mercedes|benz|car|registration|emissions/.test(combined))return'Vehicle';
   if(/receipt|expense/.test(combined))return'Expenses';
   return'Other';
 }
@@ -6160,12 +6119,12 @@ function getAvailableRequiredDocs(){
   }
   // 1099 forms (mailed in January-February for prior year)
   if(month>=0){
-    items.push({key:'1099_paypal',name:`PayPal 1099-K for ${prevYear}`,category:'1099 Forms',tab:'Tax',due:'Available since Jan 31',priority:'high'});
-    items.push({key:'1099_shareasale',name:`ShareASale 1099 for ${prevYear}`,category:'1099 Forms',tab:'Tax',due:'Available since Jan 31',priority:'high'});
-    items.push({key:'1099_impact',name:`Impact 1099 for ${prevYear}`,category:'1099 Forms',tab:'Tax',due:'Available since Jan 31',priority:'high'});
+    items.push({key:'1099k',name:`1099-K forms for ${prevYear} (payment processors)`,category:'1099 Forms',tab:'Tax',due:'Available since Jan 31',priority:'high'});
+    items.push({key:'1099nec',name:`1099-NEC forms for ${prevYear} (clients)`,category:'1099 Forms',tab:'Tax',due:'Available since Jan 31',priority:'high'});
+    items.push({key:'1099misc',name:`1099-MISC / affiliate earnings reports for ${prevYear}`,category:'1099 Forms',tab:'Tax',due:'Available since Jan 31',priority:'high'});
   }
   if(month>=1){
-    items.push({key:'1099b',name:`Fidelity / Brokerage 1099 for ${prevYear}`,category:'1099 Forms',tab:'Brokerage',due:'Available since Feb 15',priority:'high'});
+    items.push({key:'1099b',name:`Brokerage 1099-B / 1099-DIV for ${prevYear}`,category:'1099 Forms',tab:'Brokerage',due:'Available since Feb 15',priority:'high'});
     items.push({key:'1095a',name:`Health Insurance 1095-A for ${prevYear}`,category:'Tax Forms',tab:'Tax',due:'Available since Feb 15',priority:'medium'});
   }
   if(month>=4){
@@ -6173,14 +6132,24 @@ function getAvailableRequiredDocs(){
     items.push({key:'5498sa',name:`Form 5498-SA (HSA contributions) for ${prevYear}`,category:'Tax Forms',tab:'HSA',due:'Available since May 31',priority:'medium'});
   }
   // Monthly statements - only for months that have passed
+  // Dynamically generated from the user's actual checking/credit/savings accounts
+  const stmtAccounts=state.accounts.filter(a=>['checking','credit','savings'].includes((a.category||'').toLowerCase()));
   for(let m=0;m<=month;m++){
     const monthName=MONTHS[m];
     const monthYear=`${year}-${String(m+1).padStart(2,'0')}`;
-    items.push({key:`stmt_chase_chk_${monthYear}`,name:`Chase Business Checking - ${monthName} ${year}`,category:'Statements',tab:'Accounts',due:`Available ~${MONTHS[(m+1)%12]} 5`,priority:'medium',monthKey:monthYear,accountKey:'bus_chk'});
-    items.push({key:`stmt_sapphire_${monthYear}`,name:`Sapphire Reserve - ${monthName} ${year}`,category:'Statements',tab:'Cards',due:`Available ~${MONTHS[(m+1)%12]} 5`,priority:'medium',monthKey:monthYear,accountKey:'sapphire'});
-    items.push({key:`stmt_united_q_${monthYear}`,name:`United Quest - ${monthName} ${year}`,category:'Statements',tab:'Cards',due:`Available ~${MONTHS[(m+1)%12]} 5`,priority:'medium',monthKey:monthYear,accountKey:'united_q'});
-    items.push({key:`stmt_ink_${monthYear}`,name:`Ink Business Cash - ${monthName} ${year}`,category:'Statements',tab:'Cards',due:`Available ~${MONTHS[(m+1)%12]} 5`,priority:'medium',monthKey:monthYear,accountKey:'ink'});
-    items.push({key:`stmt_united_b_${monthYear}`,name:`United Business - ${monthName} ${year}`,category:'Statements',tab:'Cards',due:`Available ~${MONTHS[(m+1)%12]} 5`,priority:'medium',monthKey:monthYear,accountKey:'united_b'});
+    for(const acc of stmtAccounts){
+      const tab=acc.category==='credit'?'Cards':'Accounts';
+      items.push({
+        key:`stmt_${acc.id}_${monthYear}`,
+        name:`${acc.name} - ${monthName} ${year}`,
+        category:'Statements',
+        tab,
+        due:`Available ~${MONTHS[(m+1)%12]} 5`,
+        priority:'medium',
+        monthKey:monthYear,
+        accountKey:acc.id
+      });
+    }
   }
   return items;
 }
@@ -6310,7 +6279,7 @@ async function runInsights(background){
     desc:t.description,amt:t.amount,type:t.type,cat:t.category
   }));
 
-  const prompt=`You are a sharp, practical financial advisor for a Denver-based self-employed business owner. Analyze this person's complete financial picture and give specific actionable recommendations.
+  const prompt=`You are a sharp, practical financial advisor for a self-employed business owner. Analyze this person's complete financial picture and give specific actionable recommendations.
 
 YEARLY INCOME: $${incomeTotal.toFixed(2)}
 YEARLY EXPENSES (business): $${expenseTotal.toFixed(2)}
@@ -6323,7 +6292,7 @@ TOP TRANSACTIONS: ${JSON.stringify(topTxns)}
 
 Pay special attention to:
 1. SPENDING CATEGORIES - identify where money is going, find unusual concentrations
-2. ANNUAL FEE INCREASES on credit cards (Chase has raised many in 2025-2026 - flag any card where current fee may be higher than what the user has logged)
+2. ANNUAL FEE INCREASES on credit cards (Chase has raised many fees in recent years - flag any card where current fee may be higher than what the user has logged)
 3. HIDDEN/INCREASED FEES - bank service fees, ACH fees, payment processor fees, late fees, foreign transaction fees, subscription price hikes
 4. DUPLICATE SUBSCRIPTIONS or services (e.g., two CDN providers, multiple cloud storage)
 5. POOR CARD USAGE - charges on cards that don't earn category bonus when a better card is available
@@ -6661,7 +6630,7 @@ const TAX_DEADLINES_2026=[
   {date:'2026-02-15',name:'1099-B / 1099-DIV / 1099-INT Forms Due',desc:'Brokerage forms typically arrive'},
   {date:'2026-03-15',name:'S-Corp / Partnership Filing',desc:'Forms 1120-S and 1065 (or file extension)'},
   {date:'2026-04-15',name:'Federal Tax Filing Deadline',desc:'Personal returns + Schedule C, Q1 estimated payment, prior-year IRA contribution deadline, HSA contribution deadline'},
-  {date:'2026-04-15',name:'Colorado State Tax Filing',desc:'Colorado individual return due'},
+  {date:'2026-04-15',name:'State Tax Filing',desc:'State individual return due (check your state for exact deadline)'},
   {date:'2026-06-15',name:'Q2 2026 Estimated Tax Payment',desc:'Self-employed quarterly estimate'},
   {date:'2026-09-15',name:'Q3 2026 Estimated Tax Payment',desc:'Self-employed quarterly estimate'},
   {date:'2026-10-15',name:'Extended Filing Deadline',desc:'If you filed an extension in April'},
@@ -6674,15 +6643,14 @@ const DEFAULT_TAX_CHECKLIST=[
   {id:'biz_cc',name:'Monthly statements - Business credit card (12 months)',category:'business',location:''},
   {id:'biz_chk',name:'Monthly statements - Business checking (12 months)',category:'business',location:''},
   {id:'paypal',name:'PayPal annual report / 1099-K',category:'business',location:''},
-  {id:'fidelity',name:'Fidelity / Brokerage 1099 reports',category:'personal',location:''},
+  {id:'brokerage_1099',name:'Brokerage 1099 reports (1099-B / 1099-DIV / 1099-INT)',category:'personal',location:''},
   {id:'ira',name:'IRA contribution confirmation (Form 5498)',category:'personal',location:''},
   {id:'1095a',name:'Health Insurance 1095-A (if marketplace plan)',category:'personal',location:''},
-  {id:'henry',name:'Henry payment records',category:'business',location:''},
+  {id:'recurring_vendor',name:'Other recurring vendor payment records',category:'business',location:''},
   {id:'1099nec',name:'1099-NEC forms (received from clients)',category:'business',location:''},
   {id:'1099k',name:'1099-K forms (from payment processors)',category:'business',location:''},
   {id:'w2',name:'W-2 forms (if applicable)',category:'personal',location:''},
-  {id:'shareasale',name:'ShareASale earnings report',category:'business',location:''},
-  {id:'impact',name:'Impact earnings report',category:'business',location:''},
+  {id:'affiliate',name:'Affiliate / network earnings reports',category:'business',location:''},
   {id:'hsa',name:'HSA contribution records (Form 5498-SA)',category:'personal',location:''},
   {id:'rental',name:'Rent/mortgage records for home office',category:'business',location:''},
   {id:'mileage',name:'Vehicle mileage log',category:'business',location:''},
@@ -6792,7 +6760,7 @@ function addChecklistItem(){
   save();renderTaxCenter();
 }
 
-const SCHEDULE_C_CATEGORIES=['PayPal fees','Bank monthly service fees','Internet','Phone','Wire fees','Merchandise & inventory','Professional services','Office & shipping','Gas','Travel','Labor','Meals','Legal (registration, smog, SOS)','Maintenance','Other','Insurance - Dental','Insurance - Car','Insurance - Renter','Xcel Energy','Software & hosting','Payroll','Bookkeeping','Parking'];
+const SCHEDULE_C_CATEGORIES=['PayPal fees','Bank monthly service fees','Internet','Phone','Wire fees','Merchandise & inventory','Professional services','Office & shipping','Gas','Travel','Labor','Meals','Legal (registration, smog, SOS)','Maintenance','Other','Insurance - Dental','Insurance - Car','Insurance - Renter','Utilities (home office %)','Software & hosting','Payroll','Bookkeeping','Parking'];
 
 function renderCategorized(){
   const el=document.getElementById('tax-categorized');
@@ -6850,7 +6818,7 @@ function renderHomeOffice(){
   const deduction=ho.rent*pct*ho.months;
   document.getElementById('tax-home-office').textContent=fmt(deduction);
   document.getElementById('tax-home-office-meta').textContent=`${ho.office}/${ho.total} sqft = ${(pct*100).toFixed(2)}%`;
-  document.getElementById('ho-result').innerHTML=`<strong>Office percentage:</strong> ${(pct*100).toFixed(2)}%<br><strong>Monthly deductible rent:</strong> ${fmt(ho.rent*pct)}<br><strong>Annual deduction (${ho.months} months):</strong> <span style="font-family:var(--display);font-size:20px;color:var(--accent);font-weight:700">${fmt(deduction)}</span><br><em style="font-size:12px;color:var(--ink-soft);margin-top:6px;display:block">Also deduct ${(pct*100).toFixed(2)}% of utilities (Xcel Energy, internet) for the home office portion.</em>`;
+  document.getElementById('ho-result').innerHTML=`<strong>Office percentage:</strong> ${(pct*100).toFixed(2)}%<br><strong>Monthly deductible rent:</strong> ${fmt(ho.rent*pct)}<br><strong>Annual deduction (${ho.months} months):</strong> <span style="font-family:var(--display);font-size:20px;color:var(--accent);font-weight:700">${fmt(deduction)}</span><br><em style="font-size:12px;color:var(--ink-soft);margin-top:6px;display:block">Also deduct ${(pct*100).toFixed(2)}% of utilities (electric, internet) for the home office portion.</em>`;
 }
 function updateHomeOffice(){
   state.homeOffice={
@@ -7071,7 +7039,7 @@ function renderYoyComparison(){
         <th>Metric</th>
         <th style="text-align:right">${priorYear.year} Actual</th>
         <th style="text-align:right">${mode==='benchmark'?monthsCovered+'-mo Actual':'YTD Actual'}</th>
-        <th style="text-align:right">${state.filingYear||2026} ${mode==='benchmark'?'Projected':'Baseline'}</th>
+        <th style="text-align:right">${state.filingYear||(new Date().getFullYear())} ${mode==='benchmark'?'Projected':'Baseline'}</th>
         <th style="text-align:right">Change</th>
       </tr></thead>
       <tbody>
@@ -7856,7 +7824,7 @@ function mapToChaseCategory(cat){
   // Refunds/reversals (check first - positive amounts on personal cards)
   if(/refund|reversal|return|credit|reimburs/.test(c))return'Refunds / Reversals';
   // Vaping & Alcohol — smoking, vaping, alcohol stores, cannabis dispensaries
-  if(/smoke signals|vape|vap\b|juul|tobacco|cigar\b|cigarette|liquor|wine shop|wines? &amp; spirits|wines? and spirits|distillery|brewery|abc liquor|total wine|bevmo|argonaut|molly\s*s spirits|dispensary|cannabis|\bthc\b|cbd shop|smoke shop/.test(c))return'Vaping & Alcohol';
+  if(/vape|vap\b|juul|tobacco|cigar\b|cigarette|liquor|wine shop|wines? &amp; spirits|wines? and spirits|distillery|brewery|abc liquor|total wine|bevmo|argonaut|molly\s*s spirits|dispensary|cannabis|\bthc\b|cbd shop|smoke shop/.test(c))return'Vaping & Alcohol';
   // Pets
   if(/petco|petsmart|chewy|vet\b|veterin|pet food|pet supply|cat food|litter/.test(c))return'Pets';
   // Rent
@@ -7864,7 +7832,7 @@ function mapToChaseCategory(cat){
   // Insurance (any kind)
   if(/insurance|state farm|geico|progressive|allstate|delta dental|renter.?s ins|liberty mutual/.test(c))return'Insurance';
   // Parking (separate from auto)
-  if(/parkm|parking|denver pay by phone|alta parking|belmar.*parking|parkmobile|spot hero|paybyphone/.test(c))return'Parking';
+  if(/parkm|parking|pay by phone|spot hero|paybyphone|parkmobile/.test(c))return'Parking';
   // Subscriptions
   if(/netflix|spotify|hulu|disney\+|hbo|max\.com|apple\.com\/bill|apple tv|youtube premium|prime video|paramount|peacock|patreon|substack|nytimes|wsj|new york times|wall street/.test(c))return'Subscriptions (Personal)';
   // ATM / cash
@@ -7878,7 +7846,7 @@ function mapToChaseCategory(cat){
   // Entertainment
   if(/movie|theater|concert|event|stubhub|ticketmaster|axs|live nation|axs ticket|venue|comedy/.test(c))return'Entertainment';
   // Food & Drink
-  if(/restaurant|cafe|coffee|starbucks|chipotle|mcdonald|doordash|grubhub|uber.?eats|meal|dining|kitty beanz|brewery|bar\b|pub\b|taco|pizza|sushi|thai|chinese food|deli|bistro|grill\b/.test(c))return'Food & Drink';
+  if(/restaurant|cafe|coffee|starbucks|chipotle|mcdonald|doordash|grubhub|uber.?eats|meal|dining|brewery|bar\b|pub\b|taco|pizza|sushi|thai|chinese food|deli|bistro|grill\b/.test(c))return'Food & Drink';
   // Gas
   if(/\bgas\b|fuel|shell|chevron|exxon|76\b|sunoco|conoco|bp\b|circle k|7.eleven gas/.test(c)&&!/gas company/.test(c))return'Gas';
   // Gifts/Donations
@@ -8373,7 +8341,7 @@ async function runManagedAnalysis(){
   const mgdStocks=state.stocks.filter(s=>s.account==='managed');
   const retValue=retStocks.reduce((s,x)=>s+(x.qty*x.price),0);
   const mgdValue=mgdStocks.reduce((s,x)=>s+(x.qty*x.price),0);
-  const prompt=`I'm helping a Denver-based self-employed business owner decide whether to keep his professionally managed brokerage account (~1% annual advisor fee) or take a more self-directed approach focused on AI, semiconductors, and tech.
+  const prompt=`I'm helping a self-employed business owner decide whether to keep his professionally managed brokerage account (~1% annual advisor fee) or take a more self-directed approach focused on AI, semiconductors, and tech.
 
 HIS CONTEXT:
 - Successful self-employed for years
@@ -8522,7 +8490,7 @@ function generateAutoTodos(){
     items.push({id:'auto_taxreturn',source:'auto',category:'Tax',text:'Upload prior year tax return (used as projection baseline)',action:`showTab('tax')`});
   }
   // Statement coverage (year) — iterate the user's actual accounts dynamically
-  const year=state.filingYear||2026;
+  const year=state.filingYear||(new Date().getFullYear());
   const today=new Date();
   const currentYear=today.getFullYear();
   const maxMonth=year<currentYear?12:year>currentYear?0:today.getMonth()+1;
@@ -8545,11 +8513,12 @@ function generateAutoTodos(){
       items.push({id:'auto_stmt2_'+acc.id,source:'auto',category:'Statements',text:`Upload all ${year} statements for ${acc.name}`,action:`showTab('accounts')`});
     }
   });
-  // Kobe card details
-  const kobe=state.maintenance.find(m=>m.kind==='asset'&&/kobe/i.test(m.name));
-  if(kobe&&(!kobe.assetSpecifics||!kobe.assetGrade)){
-    items.push({id:'auto_kobe',source:'auto',category:'Assets',text:'Add Kobe Bryant card specifics (year, set, grading)',action:`editMaint('${kobe.id}')`});
-  }
+  // Note any tracked collectible/asset that's missing item-specifics or grade info
+  state.maintenance.filter(m=>m.kind==='asset').forEach(asset=>{
+    if(!asset.assetSpecifics||!asset.assetGrade){
+      items.push({id:'auto_asset_'+asset.id,source:'auto',category:'Assets',text:`Add specifics (year, set, grading) for ${asset.name}`,action:`editMaint('${asset.id}')`});
+    }
+  });
   // Stocks without cost basis
   state.stocks.forEach(s=>{
     if(!s.cost){
