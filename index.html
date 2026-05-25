@@ -936,6 +936,7 @@ input[type="file"]{display:none}
     <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
       <button class="btn btn-primary" id="exp-mode-pers" onclick="setExpenseMode('personal')">Personal</button>
       <button class="btn" id="exp-mode-biz" onclick="setExpenseMode('business')">Business</button>
+      <button class="btn btn-sm" onclick="openCategoryEditor()" style="margin-left:8px" title="Add, rename, or remove expense categories">⚙ Categories</button>
       <div style="flex:1"></div>
       <label style="font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.05em">Year</label>
       <select id="exp-filter-year" onchange="renderExpenses();renderBizExpenseSummary();renderPersonalExpenses&&renderPersonalExpenses()" style="font-size:13px"></select>
@@ -1066,6 +1067,30 @@ input[type="file"]{display:none}
     <div id="txn-rules"></div>
   </div>
 </section>
+
+<!-- Edit Categories Modal -->
+<div class="modal-bg" id="category-modal">
+  <div class="modal" style="max-width:680px">
+    <h2>Edit Expense Categories</h2>
+    <p style="font-size:13px;color:var(--ink-soft);margin:-8px 0 12px 0">Customize the category lists used throughout the tracker. Renaming a category here also relabels matching transactions and rows. These lists are stored with your data, not in the app — import a backup to restore your custom set.</p>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
+      <button class="btn btn-primary" id="cat-tab-business" onclick="switchCategoryTab('business')">Business (Transactions)</button>
+      <button class="btn" id="cat-tab-schc" onclick="switchCategoryTab('schc')">Business (Schedule C)</button>
+      <button class="btn" id="cat-tab-personal" onclick="switchCategoryTab('personal')">Personal (Transactions)</button>
+      <button class="btn" id="cat-tab-pers-exp" onclick="switchCategoryTab('pers-exp')">Personal (Expense Summary)</button>
+    </div>
+    <div id="cat-list-area" style="max-height:50vh;overflow:auto;border:1px solid var(--line);padding:10px;border-radius:2px;background:var(--bg)"></div>
+    <div style="display:flex;gap:6px;margin-top:10px;align-items:center">
+      <input type="text" id="cat-new-name" placeholder="New category name..." style="flex:1">
+      <button class="btn btn-primary" onclick="addCategory()">+ Add</button>
+      <button class="btn btn-sm" onclick="resetCurrentCategoryList()" title="Restore the original default list" style="margin-left:auto">↺ Reset to defaults</button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeCategoryModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCategoryEdits()">Save</button>
+    </div>
+  </div>
+</div>
 
 <!-- Rule Modal -->
 <div class="modal-bg" id="rule-modal">
@@ -2717,7 +2742,11 @@ let state={
   filingYear:new Date().getFullYear(),
   manualPersonalExpenses:[],
   txnRules:[],
-  driveFolder:''
+  driveFolder:'',
+  businessCategories:[],
+  personalCategories:[],
+  scheduleCCategories:[],
+  personalExpenseCategories:[]
 };
 
 // ============ STORAGE ============
@@ -2769,6 +2798,11 @@ function load(){
   if(!state.vehicle)state.vehicle={year:0,make:'',model:''};
   if(!state.txnRules)state.txnRules=[];
   if(typeof state.driveFolder!=='string')state.driveFolder='';
+  // Category lists — seeded once from defaults, then user-editable
+  if(!state.businessCategories||!state.businessCategories.length)state.businessCategories=DEFAULT_BUSINESS_CATEGORIES.slice();
+  if(!state.personalCategories||!state.personalCategories.length)state.personalCategories=DEFAULT_PERSONAL_CATEGORIES.slice();
+  if(!state.scheduleCCategories||!state.scheduleCCategories.length)state.scheduleCCategories=DEFAULT_SCHEDULE_C_CATEGORIES.slice();
+  if(!state.personalExpenseCategories||!state.personalExpenseCategories.length)state.personalExpenseCategories=DEFAULT_CHASE_CATEGORIES.slice();
   if(!state.personalIncome)state.personalIncome=[];
   if(!state.incomeMode)state.incomeMode='business';
   if(!state.income||state.income.length===0)seedDefaults();
@@ -3534,24 +3568,31 @@ function addExpenseRow(){
 }
 
 // Master list of category options — keyed by type
-const CATEGORY_OPTIONS={
-  business:[
-    'Sales/Revenue','Affiliate Revenue','Wire/ACH Income (Review)','Tax Refund',
-    'Payroll','Rent','Professional Services','Bank Fees','Office & Shipping','Merchandise & Inventory',
-    'Internet/Phone','Utilities','Insurance','PayPal fees','Subscription',
-    'Travel','Meals','Gas','Home Services','Repair & Maintenance',
-    'Transfer/Payment','Investment Transfer','Cash Withdrawal','Check (Review)','Uncategorized'
-  ],
-  personal:[
-    'Wages','Tips & Commissions','Self-Employment','Interest','Dividends','Rental Income',
-    'Capital Gains','Retirement Income','Unemployment','Alimony/Child Support','Royalties',
-    'Gift/Inheritance','Lottery/Gambling','Tax Refund','Wire/ACH Income (Review)',
-    'Groceries','Restaurants','Food & Drink','Travel','Meals','Gas','Pharmacy','Health & Wellness',
-    'Entertainment','Shopping','Office & Shipping','Home Improvement','Home Services','Bills & Utilities',
-    'Utilities','Internet/Phone','Insurance','Subscription','Gifts & Donations','Personal','Vaping & Alcohol','Fees & Adjustments',
-    'Transfer/Payment','Investment Transfer','Cash Withdrawal','Check (Review)','Uncategorized'
-  ]
-};
+// Default category lists — these seed state.businessCategories / state.personalCategories
+// on first load. Users edit them via Expenses tab → "Edit Categories" button. After that,
+// the state copy is authoritative.
+const DEFAULT_BUSINESS_CATEGORIES=[
+  'Sales/Revenue','Affiliate Revenue','Wire/ACH Income (Review)','Tax Refund',
+  'Payroll','Rent','Professional Services','Bank Fees','Office & Shipping','Merchandise & Inventory',
+  'Internet/Phone','Utilities','Insurance','PayPal fees','Subscription',
+  'Travel','Meals','Gas','Home Services','Repair & Maintenance',
+  'Transfer/Payment','Investment Transfer','Cash Withdrawal','Check (Review)','Uncategorized'
+];
+const DEFAULT_PERSONAL_CATEGORIES=[
+  'Wages','Tips & Commissions','Self-Employment','Interest','Dividends','Rental Income',
+  'Capital Gains','Retirement Income','Unemployment','Alimony/Child Support','Royalties',
+  'Gift/Inheritance','Lottery/Gambling','Tax Refund','Wire/ACH Income (Review)',
+  'Groceries','Restaurants','Food & Drink','Travel','Meals','Gas','Pharmacy','Health & Wellness',
+  'Entertainment','Shopping','Office & Shipping','Home Improvement','Home Services','Bills & Utilities',
+  'Utilities','Internet/Phone','Insurance','Subscription','Gifts & Donations','Personal','Vaping & Alcohol','Fees & Adjustments',
+  'Transfer/Payment','Investment Transfer','Cash Withdrawal','Check (Review)','Uncategorized'
+];
+
+// Live category accessor — reads from state. Used everywhere the old CATEGORY_OPTIONS was used.
+function getCategoryOptions(type){
+  if(type==='business')return state.businessCategories&&state.businessCategories.length?state.businessCategories:DEFAULT_BUSINESS_CATEGORIES;
+  return state.personalCategories&&state.personalCategories.length?state.personalCategories:DEFAULT_PERSONAL_CATEGORIES;
+}
 
 // Track sort state
 state._txnSort=state._txnSort||{key:'date',dir:'desc'};
@@ -3568,7 +3609,7 @@ function setTxnSort(key){
 
 // Get all unique category strings across user data + master list, deduped
 function allKnownCategories(type){
-  const fromMaster=CATEGORY_OPTIONS[type]||[];
+  const fromMaster=getCategoryOptions(type);
   const fromTxns=Array.from(new Set(state.transactions.filter(t=>t.type===type).map(t=>t.category).filter(Boolean)));
   const merged=Array.from(new Set([...fromMaster,...fromTxns])).sort();
   return merged;
@@ -3737,8 +3778,8 @@ function populateFilters(){
   af.innerHTML='<option value="">All accounts</option>'+state.accounts.map(a=>`<option value="${a.id}">${escapeHtml(a.name)}</option>`).join('');
   // Build category list: union of Schedule C, Chase, and any in-use categories
   const inUse=new Set(state.transactions.map(t=>t.category).filter(Boolean));
-  const schC=(typeof SCHEDULE_C_CATEGORIES!=='undefined')?SCHEDULE_C_CATEGORIES:[];
-  const chase=(typeof CHASE_CATEGORIES!=='undefined')?CHASE_CATEGORIES:[];
+  const schC=getScheduleCCategories();
+  const chase=getPersonalExpenseCategories();
   const extra=[...inUse].filter(c=>!schC.includes(c)&&!chase.includes(c)).sort();
   let html='<option value="">All categories</option>';
   html+='<optgroup label="Special filters"><option value="__UNCATEGORIZED__">⚠ Uncategorized only</option><option value="__REVIEW__">⚠ Needs Review only</option></optgroup>';
@@ -4258,6 +4299,109 @@ function openRuleModal(){
   document.getElementById('rule-modal').classList.add('active');
 }
 function closeRuleModal(){document.getElementById('rule-modal').classList.remove('active')}
+
+// ============ CATEGORY EDITOR ============
+// Working copies so the user can Cancel without saving
+let _catEditState=null;
+let _catEditCurrentTab='business';
+
+function openCategoryEditor(){
+  // Snapshot current lists into working state
+  _catEditState={
+    business:(state.businessCategories||[]).slice(),
+    schc:(state.scheduleCCategories||[]).slice(),
+    personal:(state.personalCategories||[]).slice(),
+    'pers-exp':(state.personalExpenseCategories||[]).slice()
+  };
+  _catEditCurrentTab='business';
+  switchCategoryTab('business');
+  document.getElementById('category-modal').classList.add('active');
+}
+function closeCategoryModal(){
+  document.getElementById('category-modal').classList.remove('active');
+  _catEditState=null;
+}
+function switchCategoryTab(which){
+  _catEditCurrentTab=which;
+  // Highlight active button
+  ['business','schc','personal','pers-exp'].forEach(k=>{
+    const btn=document.getElementById('cat-tab-'+k);
+    if(btn)btn.classList.toggle('btn-primary',k===which);
+  });
+  renderCategoryList();
+}
+function renderCategoryList(){
+  const list=_catEditState[_catEditCurrentTab]||[];
+  const area=document.getElementById('cat-list-area');
+  if(!area)return;
+  if(list.length===0){
+    area.innerHTML='<div class="empty">No categories. Add some below.</div>';
+    return;
+  }
+  area.innerHTML=list.map((c,i)=>`<div style="display:flex;gap:6px;padding:4px 0;align-items:center">
+    <input type="text" value="${escapeHtml(c)}" onchange="renameCategoryAt(${i},this.value)" style="flex:1;font-size:13px">
+    <button class="btn btn-sm" onclick="moveCategoryUp(${i})" ${i===0?'disabled':''} title="Move up">↑</button>
+    <button class="btn btn-sm" onclick="moveCategoryDown(${i})" ${i===list.length-1?'disabled':''} title="Move down">↓</button>
+    <button class="btn btn-sm btn-danger" onclick="removeCategoryAt(${i})" title="Delete">×</button>
+  </div>`).join('');
+}
+function renameCategoryAt(i,val){
+  if(!_catEditState)return;
+  const list=_catEditState[_catEditCurrentTab];
+  if(list&&i>=0&&i<list.length)list[i]=val.trim()||list[i];
+}
+function moveCategoryUp(i){
+  const list=_catEditState[_catEditCurrentTab];
+  if(i<=0)return;
+  [list[i-1],list[i]]=[list[i],list[i-1]];
+  renderCategoryList();
+}
+function moveCategoryDown(i){
+  const list=_catEditState[_catEditCurrentTab];
+  if(i>=list.length-1)return;
+  [list[i+1],list[i]]=[list[i],list[i+1]];
+  renderCategoryList();
+}
+function removeCategoryAt(i){
+  const list=_catEditState[_catEditCurrentTab];
+  if(!list||i<0||i>=list.length)return;
+  const removed=list[i];
+  if(!confirm(`Remove "${removed}"?\n\nExisting transactions/rows using this category keep their label — only the dropdown list is affected.`))return;
+  list.splice(i,1);
+  renderCategoryList();
+}
+function addCategory(){
+  const input=document.getElementById('cat-new-name');
+  const name=(input.value||'').trim();
+  if(!name)return;
+  const list=_catEditState[_catEditCurrentTab];
+  if(list.includes(name)){alert('Already exists');return}
+  list.push(name);
+  input.value='';
+  renderCategoryList();
+}
+function resetCurrentCategoryList(){
+  if(!confirm('Reset this list to the original default? Your customizations on this tab will be lost.'))return;
+  const defaults={
+    business:DEFAULT_BUSINESS_CATEGORIES,
+    schc:DEFAULT_SCHEDULE_C_CATEGORIES,
+    personal:DEFAULT_PERSONAL_CATEGORIES,
+    'pers-exp':DEFAULT_CHASE_CATEGORIES
+  };
+  _catEditState[_catEditCurrentTab]=defaults[_catEditCurrentTab].slice();
+  renderCategoryList();
+}
+function saveCategoryEdits(){
+  if(!_catEditState)return;
+  state.businessCategories=_catEditState.business.slice();
+  state.scheduleCCategories=_catEditState.schc.slice();
+  state.personalCategories=_catEditState.personal.slice();
+  state.personalExpenseCategories=_catEditState['pers-exp'].slice();
+  save();
+  closeCategoryModal();
+  renderAll();
+  toast('Categories saved');
+}
 function editRule(rid){
   const r=(state.txnRules||[]).find(x=>x.id===rid);
   if(!r)return;
@@ -6760,7 +6904,10 @@ function addChecklistItem(){
   save();renderTaxCenter();
 }
 
-const SCHEDULE_C_CATEGORIES=['PayPal fees','Bank monthly service fees','Internet','Phone','Wire fees','Merchandise & inventory','Professional services','Office & shipping','Gas','Travel','Labor','Meals','Legal (registration, smog, SOS)','Maintenance','Other','Insurance - Dental','Insurance - Car','Insurance - Renter','Utilities (home office %)','Software & hosting','Payroll','Bookkeeping','Parking'];
+const DEFAULT_SCHEDULE_C_CATEGORIES=['PayPal fees','Bank monthly service fees','Internet','Phone','Wire fees','Merchandise & inventory','Professional services','Office & shipping','Gas','Travel','Labor','Meals','Legal (registration, smog, SOS)','Maintenance','Other','Insurance - Dental','Insurance - Car','Insurance - Renter','Utilities (home office %)','Software & hosting','Payroll','Bookkeeping','Parking'];
+function getScheduleCCategories(){
+  return state.scheduleCCategories&&state.scheduleCCategories.length?state.scheduleCCategories:DEFAULT_SCHEDULE_C_CATEGORIES;
+}
 
 function renderCategorized(){
   const el=document.getElementById('tax-categorized');
@@ -6794,7 +6941,7 @@ async function aiCategorize(){
   for(let i=0;i<state.transactions.length;i+=50){batches.push(state.transactions.slice(i,i+50))}
   for(const batch of batches){
     const items=batch.map(t=>({id:t.id,desc:t.description,amt:t.amount}));
-    const prompt=`Categorize each transaction. Return ONLY a JSON object mapping id to category. Categories: ${SCHEDULE_C_CATEGORIES.join(', ')}, or other relevant Schedule C category.\n\nTransactions: ${JSON.stringify(items)}`;
+    const prompt=`Categorize each transaction. Return ONLY a JSON object mapping id to category. Categories: ${getScheduleCCategories().join(', ')}, or other relevant Schedule C category.\n\nTransactions: ${JSON.stringify(items)}`;
     try{
       const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':state.apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:3000,messages:[{role:'user',content:prompt}]})});
       const data=await r.json();
@@ -7704,14 +7851,17 @@ function setExpenseMode(mode){
 }
 
 // Chase's standard spending categories (from Chase app)
-const CHASE_CATEGORIES=['Bills & Utilities','Rent','Insurance','Subscriptions (Personal)','Gas','Automotive','Parking','Groceries','Food & Drink','Vaping','Health & Wellness','Pets','Entertainment','Shopping','Home','Travel','Education','Professional Services','Gifts & Donations','ATM / Cash','Fees & Adjustments','Refunds / Reversals','Miscellaneous'];
+const DEFAULT_CHASE_CATEGORIES=['Bills & Utilities','Rent','Insurance','Subscriptions (Personal)','Gas','Automotive','Parking','Groceries','Food & Drink','Vaping','Health & Wellness','Pets','Entertainment','Shopping','Home','Travel','Education','Professional Services','Gifts & Donations','ATM / Cash','Fees & Adjustments','Refunds / Reversals','Miscellaneous'];
+function getPersonalExpenseCategories(){
+  return state.personalExpenseCategories&&state.personalExpenseCategories.length?state.personalExpenseCategories:DEFAULT_CHASE_CATEGORIES;
+}
 
 function renderBusinessExpenseTable(){
   const tbl=document.getElementById('business-expense-table');
   if(!tbl)return;
   // Always show all Schedule C categories
   const txnsByMonth={};
-  SCHEDULE_C_CATEGORIES.forEach(cat=>{txnsByMonth[cat]=new Array(12).fill(0)});
+  getScheduleCCategories().forEach(cat=>{txnsByMonth[cat]=new Array(12).fill(0)});
   state.transactions.filter(t=>t.type==='business'&&t.amount<0&&!isTransferCategory(t.category)&&txnPassesFilter(t,'exp')).forEach(t=>{
     const mo=parseInt((t.date||'').slice(5,7))-1;
     if(mo<0||mo>11)return;
@@ -7720,7 +7870,7 @@ function renderBusinessExpenseTable(){
     txnsByMonth[cat][mo]+=Math.abs(t.amount);
   });
   const allKeys=Object.keys(txnsByMonth);
-  const cats=[...SCHEDULE_C_CATEGORIES.filter(c=>allKeys.includes(c)),...allKeys.filter(c=>!SCHEDULE_C_CATEGORIES.includes(c)).sort()];
+  const cats=[...getScheduleCCategories().filter(c=>allKeys.includes(c)),...allKeys.filter(c=>!getScheduleCCategories().includes(c)).sort()];
   let html='<thead><tr><th>Category</th>';
   MONTHS.forEach(m=>html+=`<th style="text-align:right">${m}</th>`);
   html+='<th style="text-align:right">Total</th></tr></thead><tbody>';
@@ -7749,12 +7899,12 @@ function renderPersonalExpenses(){
   if(!tbl)return;
   // Always show all Chase categories - in fixed order
   const txnsByMonth={};
-  CHASE_CATEGORIES.forEach(cat=>{txnsByMonth[cat]=new Array(12).fill(0)});
+  getPersonalExpenseCategories().forEach(cat=>{txnsByMonth[cat]=new Array(12).fill(0)});
   state.transactions.filter(t=>t.type==='personal'&&t.amount<0&&!isTransferCategory(t.category)&&txnPassesFilter(t,'exp')).forEach(t=>{
     const mo=parseInt((t.date||'').slice(5,7))-1;
     if(mo<0||mo>11)return;
     let cat;
-    if(t.category&&CHASE_CATEGORIES.includes(t.category)){
+    if(t.category&&getPersonalExpenseCategories().includes(t.category)){
       cat=t.category;
     }else{
       cat=mapToChaseCategory((t.description||'')+' '+(t.category||''));
@@ -7764,7 +7914,7 @@ function renderPersonalExpenses(){
   });
   // Order: defined Chase order first, then any extras alphabetically
   const allKeys=Object.keys(txnsByMonth);
-  const cats=[...CHASE_CATEGORIES.filter(c=>allKeys.includes(c)),...allKeys.filter(c=>!CHASE_CATEGORIES.includes(c)).sort()];
+  const cats=[...getPersonalExpenseCategories().filter(c=>allKeys.includes(c)),...allKeys.filter(c=>!getPersonalExpenseCategories().includes(c)).sort()];
   let html='<thead><tr><th>Category</th>';
   MONTHS.forEach(m=>html+=`<th style="text-align:right">${m}</th>`);
   html+='<th style="text-align:right">Total</th></tr></thead><tbody>';
@@ -7794,7 +7944,7 @@ function renderPersonalExpenses(){
     const byCategory={};
     state.transactions.filter(t=>t.type==='personal'&&t.amount<0&&!isTransferCategory(t.category)&&txnPassesFilter(t,'exp')).forEach(t=>{
       let cat;
-      if(t.category&&CHASE_CATEGORIES.includes(t.category)){
+      if(t.category&&getPersonalExpenseCategories().includes(t.category)){
         cat=t.category;
       }else{
         // Try description first (more specific), then category as fallback
